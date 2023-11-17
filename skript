@@ -1,0 +1,41 @@
+#!/bin/bash
+
+# Benutzereingabe für die Originalvideodatei (mit Anführungszeichen)
+read -p "Ziehen Sie die Originalvideodatei ins Terminal und drücken Sie Enter: " original_file
+
+# Überprüfen, ob eine Datei gezogen wurde
+if [ ! -f "$original_file" ]; then
+    echo "Fehler: Sie müssen eine gültige Datei ziehen."
+    exit 1
+fi
+
+# Setzen Sie den Pfad in Anführungszeichen, um Leerzeichen zu berücksichtigen
+original_file="$original_file"
+
+# Benutzereingabe für den Kompressionswert
+echo "Kompressionswert eingeben. Normal ist 26. Ein höherer Wert verstärkt die Kompression."
+read -p "Kompressionswert: " compression_value
+
+# Standardwert setzen, wenn keine Eingabe erfolgt
+if [ -z "$compression_value" ]; then
+    compression_value=26
+fi
+
+# Extrahieren Sie den Dateinamen ohne Erweiterung
+filename=$(basename -- "$original_file")
+filename_noext="${filename%.*}"
+
+# Setzen Sie das Verzeichnis für die komprimierte Datei auf das Verzeichnis der Originaldatei
+output_directory=$(dirname -- "$original_file")
+
+# Hinzufügen der Erweiterung .mp4 zum neuen Dateinamen
+new_filename="${filename_noext}_compressed.mp4"
+
+# Setzen Sie den Pfad zur komprimierten Datei in Anführungszeichen, um Leerzeichen zu berücksichtigen
+output_file="$output_directory/$new_filename"
+
+# Videodatei komprimieren
+ffmpeg -i "$original_file" -c:v libx264 -movflags +faststart -crf "$compression_value" -c:a aac -b:a 196k -preset veryslow "$output_file"
+
+echo "Die komprimierte Datei wurde im gleichen Verzeichnis wie die Originaldatei als $new_filename mit einem Kompressionswert von $compression_value erstellt."
+
